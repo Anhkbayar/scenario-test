@@ -142,9 +142,11 @@ Error budget = 12 секунд
 
 ### Availability ба reliability тусгаарлах
 
+Availability SLI-г "хүсэлт серверт хүрч хариу авсан эсэх" (connection error, timeout, status 0-ээр) гэж, reliability SLI-г "хариу авсан хүсэлтүүдийн дотор зөв хариу (2xx, зөв body) буцсан эсэх" гэж тодорхойлбол crash зөвхөн availability-д, харин 5xx буцаадаг bug зөвхөн reliability-д нөлөөлж, хоёр SLI өөр өөр эвдрэлийг хэмжинэ.
+
 ## Threshold зориуд эвдэх
 
-`/report` endpoint-ийн `p(95)<100` threshold-ийг шалгахын тулд `slo-test-fail.js` скриптийг тусад нь үүсгэж ажиллуулсан.
+`/report` endpoint-ийн `p(95)<100` threshold-ийг шалгахын тулд `slo-test-fail.ts` скриптийг тусад нь үүсгэж ажиллуулсан.
 
 ### Threshold
 
@@ -197,3 +199,5 @@ Threshold FAIL болсон үед k6:
 Иймээс ижил `p(95)` хэлбэрийн threshold ашигласан ч endpoint бүрийн бодит response time өөр учраас `/cart/add` PASS, `/report` FAIL болж байна.
 
 ## Дүгнэлт
+
+Энэ ажлаар performance, reliability, availability гэсэн гурван чанарын шинж чанарыг сценарио болгон тодорхойлж, тэдгээрээс тоон SLO гаргаад k6-ээр хэмжсэн. Мини chaos туршилтад серверийг 10 секунд унтраахад 5703 хүсэлтийн 13.47% амжилтгүй болж, checks 86.53% хүртэл буурсан тул 90%-ийн availability threshold FAIL болсон. Endpoint тус бүрээс /pay хамгийн өндөр буюу 16.47%-ийн алдаатай байсан. 10 секундийн зогсолт нь 12 секундийн time-based error budget-д багтсан ч request-based хэмжилтээр SLO зөрчигдсөн. Учир нь сервер унасан үед хүсэлтүүд connection refused-ээр бараг шууд буцаж, нэг секундэд илүү олон алдаатай хүсэлт бүртгэгддэг. Иймээс time-based болон request-based error budget нь шууд адил утгатай биш бөгөөд SLI-г ямар аргаар хэмжихээ эхнээс нь сонгох хэрэгтэйг харуулсан. Нэг эвдрэл availability болон reliability хоёр SLO-г зэрэг зөрчиж болох тул хоёр SLI-г тусгаарлах нь чухал юм. Availability-г "хариу ирсэн эсэх", reliability-г "ирсэн хариу зөв эсэх" гэж хуваавал crash болон 5xx bug өөр өөр хэмжигдэнэ. Threshold зориуд эвдэх туршилтаар /report-ийн бодит p(95) нь 390.48 ms байж 100 ms-ийн босгыг хангаагүй (FAIL), харин /cart/add нь 2.19 ms-ээр PASS болсон. Endpoint бүрийн бодит latency өөр тул threshold-ийг endpoint тус бүрт тусад нь тогтоох ёстой. Threshold зөрчигдөхөд k6 нь exit code 99 буцаадаг тул CI pipeline-д ашиглаж, SLO зөрчсөн build-ийг автоматаар зогсоох боломжтой.
