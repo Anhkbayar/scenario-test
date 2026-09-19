@@ -5,6 +5,7 @@
 ### Туршилтын тохиргоо
 
 - **K6 version:** k6 v2.2.0 (commit/00a9a1b7f5, go1.26.5, linux/amd64)
+- **Тест сервер:** [Github repository](https://github.com/Anhkbayar/test-server)
 
 ## Алхам 2: Гурван сценарио
 
