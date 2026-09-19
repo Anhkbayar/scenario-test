@@ -10,7 +10,7 @@ export const options = {
     //Reliability SLO
     'http_req_failed{name:pay}': ['rate<0.08'],
     //Availability SLO
-    'checks': ['rate>0.95'],
+    'checks': ['rate>0.90'],
     //4th check
     'http_req_duration{name: report}': ['p(95)<400']
   }

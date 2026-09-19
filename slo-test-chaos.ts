@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 import http from 'k6/http';
 
 export const options = {
-  vus: 20, duration: '1m',
+  vus: 20, duration: '2m',
   thresholds: {
     //Perfomance SLO
     'http_req_duration{name: cart}': ['p(95)<4',],
@@ -11,6 +11,8 @@ export const options = {
     'http_req_failed{name:pay}': ['rate<0.08'],
     //Availability SLO
     'checks': ['rate>0.90'],
+    //4th check
+    'http_req_duration{name: report}': ['p(95)<400']
   }
 }
 
