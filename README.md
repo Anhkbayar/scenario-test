@@ -118,6 +118,10 @@ Availability-ийн шаардлага нь:
 
 > JSON output дээр `"rate>0.90": true` гэж гарсан боловч `checks.value = 0.8653` буюу 86.53% байна. 86.53% нь 90%-аас бага тул математик утгаараа threshold нь FAIL байх ёстой. Иймээс availability-ийн бодит үр **FAIL** болов.
 
+### Error budget хэтэрсэн эсэх
+
+Энэ үр дүнгээс харахад SLO-ийн 90%-ийн босго нь заавал хэт өөдрөг байсан гэж дүгнэж болохгүй. Харин 10 секундийн crash нь тухайн ачааллын үед олон хүсэлтэд зэрэг нөлөөлж, request-based availability-г 90%-аас доош оруулсан байна.
+
 ### Error budget
 
 Availability SLO-г 90% гэж үзвэл 2 минутын туршилтын цонхонд зөвшөөрөгдөх downtime:
@@ -136,6 +140,60 @@ Error budget = 12 секунд
 
 Иймээс 12 секундийн time-based error budget болон `13.47`%-ийн request-based failure rate нь хоорондоо шууд адил утгатай биш юм.
 
+### Availability ба reliability тусгаарлах
+
 ## Threshold зориуд эвдэх
+
+`/report` endpoint-ийн `p(95)<100` threshold-ийг шалгахын тулд `slo-test-fail.js` скриптийг тусад нь үүсгэж ажиллуулсан.
+
+### Threshold
+
+```js
+thresholds: {
+  'http_req_duration{name: cart}': ['p(95)<50'],
+  'http_req_duration{name: report}': ['p(95)<100'],
+  'http_req_failed{name:pay}': ['rate<0.08'],
+  checks: ['rate>0.90'],
+}
+```
+
+### Үр дүн
+
+| Endpoint    |  Threshold | Бодит p(95) | Үр дүн |
+| ----------- | ---------: | ----------: | ------ |
+| `/cart/add` |  `< 50 ms` |     2.19 ms | PASS   |
+| `/report`   | `< 100 ms` |   390.48 ms | FAIL   |
+
+`/report` endpoint-ийн бодит `p(95)` нь `390.48 ms` байсан тул `p(95)<100` threshold-ийг хангаагүй.
+
+FAIL болсон үед k6-ийн гаралтад threshold зөрчигдсөн тухай мөр гарна:
+
+```text
+✗ 'p(95)<100' threshold on http_req_duration{name: report} has been crossed
+```
+
+Linux/macOS дээр exit code-ийг дараах командаар шалгасан:
+
+```bash
+echo $?
+```
+
+Threshold FAIL болсон үед k6:
+
+```text
+99
+```
+
+гэсэн exit code буцаана.
+
+`99` нь k6 тест ажилласан боловч нэг буюу түүнээс олон threshold зөрчигдсөнийг илэрхийлнэ. CI pipeline энэ non-zero exit code-ийг ашиглан build-ийг амжилтгүй болгох боломжтой.
+
+### Яагаад `/cart/add` PASS хэвээр байгаа вэ?
+
+`/cart/add` endpoint нь localhost дээр маш хурдан хариулдаг. Хэмжилтээр `p(95)=2.19 ms` байсан бөгөөд энэ нь `50 ms`-ээс бага байна.
+
+Харин `/report` endpoint нь сервер талдаа ойролцоогоор 200–400 ms зарцуулдаг тул `p(95)<100 ms` шаардлагыг хангаж чадахгүй.
+
+Иймээс ижил `p(95)` хэлбэрийн threshold ашигласан ч endpoint бүрийн бодит response time өөр учраас `/cart/add` PASS, `/report` FAIL болж байна.
 
 ## Дүгнэлт
