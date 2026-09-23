@@ -11,7 +11,7 @@ export const options = {
     //Availability SLO
     'checks': ['rate>0.90'],
     //4th check
-    'http_req_duration{name: report}': ['p(95)<200']
+    'http_req_duration{name: report}': ['p(95)<100']
   }
 }
 
